@@ -42,7 +42,7 @@ def mmse_tranch(tranch:np.array,prior_var:float,data_var:float) -> list:
 def knn(data:np.array,new_sample:np.array,k:int) -> float:
     X = data[:,0:data.shape[1] - 1]
     y = data[:,data.shape[1] - 1]
-    order = np.argsort(np.linalg.norm(X - new_sample))
+    order = np.argsort(np.linalg.norm(X - new_sample,axis = 1))
     X,y = X[order],y[order]
     to_mean = []
     for i in range(k):
@@ -54,16 +54,18 @@ def knn(data:np.array,new_sample:np.array,k:int) -> float:
 def naive_kernel(data:np.array,new_sample:np.array,limit:float) -> float:
     X = data[:,0:data.shape[1] - 1]
     y = data[:,data.shape[1] - 1]
-    order = np.argsort(np.linalg.norm(X - new_sample))
+    order = np.argsort(np.linalg.norm(X - new_sample,axis = 1))
     X,y = X[order],y[order]
-    dist = np.linalg.norm(X - new_sample)
+    dist = np.linalg.norm(X - new_sample,axis = 1)
     to_mean = []
     i = 0 
     while dist[i] <= limit:
         to_mean.append(y[i])
         i += 1
+        if i == len(y):
+            break
     to_mean = np.array(to_mean)
-    return np.array(to_mean)
+    return np.mean(to_mean)
 
 
 class SGD:
