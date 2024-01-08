@@ -1,6 +1,7 @@
 from typing import Any
 from sklearn.preprocessing import StandardScaler
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def pca(data:np.array,pve:float = None,k:int  = None) -> np.array:
@@ -68,6 +69,44 @@ def naive_kernel(data:np.array,new_sample:np.array,limit:float) -> float:
     return np.mean(to_mean)
 
 
+def two_tranches(tranch1,tranch2,var1,var2):
+    mean1 = np.mean(tranch1)
+    mean2 = np.mean(tranch2)
+    p = var1/(var1 + var2)
+    plain_mean = np.mean(np.concatenate([tranch1,tranch2]))
+    mle_mean = p * mean1 + (1 - p) * mean2
+    return (mean1,mean2,plain_mean,mle_mean)
+
+
+def plot_ROC(data,labels,L0,L1,step = 0.1):
+    ratio_first = L1.pdf(data)
+    ratio_zero = L0.pdf(data)
+    ratios = ratio_first/ratio_zero
+    threashold = 0
+    x = []
+    y = []
+    while True:
+        pred = ratios > threashold
+        true_positive = np.sum(np.logical_and(pred == labels,pred == True))
+        true_negative = np.sum(np.logical_and(pred == labels,pred == False))
+        false_positive = np.sum(np.logical_and(pred != labels,pred == True))
+        false_negative = np.sum(np.logical_and(pred != labels,pred == False))
+        alfa = false_positive/(len(labels)/2)
+        beta = false_negative/(len(labels)/2)
+        x.append(alfa)
+        y.append(1 - beta)
+        threashold += step
+
+        if true_positive < len(labels)* 10 ** -2:
+            print(true_positive)
+            break
+    plt.plot(x,y)
+    plt.plot([0,1],[0,1])
+    plt.xlabel('alfa')
+    plt.ylabel('1 - beta')
+    plt.title('ROC curve')
+
+
 class SGD:
 
     def __init__(self,LR = 10**-3) -> None:
@@ -127,10 +166,3 @@ class SGD:
                 return
     
             prev_loss = cumm_loss
-            
-
-            
-
-
-
-
