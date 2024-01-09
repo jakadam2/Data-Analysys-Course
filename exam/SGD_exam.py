@@ -7,7 +7,7 @@ import scipy.special
 
 class SGD():
     
-    def __init__(self, m=[1,1], labels=[-1, 1], prior=[1/2, 1/2], n_iterates=None, learning_rate = 0.01, decay=False, _early_stopping=False, s=1, N=100):
+    def __init__(self, m=[1,1], labels=[-1, 1], prior=[1/2, 1/2], n_iterates=None, learning_rate = 0.01, decay=False, early_stopping=False, s=1, N=100):
         """
         Input:
         - m: mean of the x that will generates when label is +1
@@ -27,7 +27,7 @@ class SGD():
         self._best_beta = [(-self._norm(m)**2)/2 + math.log(prior[1]/prior[0])] + m
         self._learning_rate = learning_rate
         self._decay = decay
-        self._early_stopping = _early_stopping
+        self._early_stopping = early_stopping
         self._s = s
         self._N = N
         self._n_iterates = n_iterates
@@ -441,9 +441,9 @@ class SGD():
         self._beta = beta
 
 
-s = SGD(s=9, m=[0.5, 0.5], n_iterates=1000)
+s = SGD(s=9, m=[0.5, 0.5], n_iterates=10000, early_stopping=5)
 
-s.run()
+s.run_online()
 s.plot_costs()
 s.test_beta() # You can launch it only if you have len(m)==2
 s.plot_ROC(nMC=10, n=1000)
