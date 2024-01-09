@@ -14,7 +14,7 @@ class SGD():
         - labels: the two label
         - prior: list that contains prior of -1 and +1
         - n_iterates: is used only in online application. Represent the max number of iterations that will be performed
-        - learning rate
+        - learning rate: in case of decaying step-size, that is the tau. In constant step-size is the mu
         - decay: if decay is false the learning rate remains constant. In contrast, if is true th learning rate will be (learning rate)/(i+1)
         - early_stopping: if is a number -> if J don't change more than a constant between two iterations, the for-each will stop
         - s: mini-batch size. If s=1, will be performed SGD with 
@@ -437,7 +437,7 @@ class SGD():
         self._beta = beta
 
 
-s = SGD(s=1, N=50, m=[0.5, 0.5])
+s = SGD(s=1, N=10, m=[0.5, 0.5])
 
 s.run()
 s.plot_costs()
