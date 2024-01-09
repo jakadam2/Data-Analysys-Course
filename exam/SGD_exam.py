@@ -360,7 +360,7 @@ class SGD():
             best_num = best_num + self._best_beta[i+1]*self._m[i] 
             best_den = best_den + (self._best_beta[i+1]**2)
         const = num/math.sqrt(den)
-        best_const = num/math.sqrt(den)
+        best_const = best_num/math.sqrt(best_den)
         for i in range(len(alphas)):
             betas[i] = self._Q_function((self._inverse_Q_function(alphas[i]) - const))
             best_betas[i] = self._Q_function((self._inverse_Q_function(alphas[i]) - best_const))
@@ -437,7 +437,7 @@ class SGD():
         self._beta = beta
 
 
-s = SGD(s=1, N=5000, m=[0.5, 0.5])
+s = SGD(s=1, N=50, m=[0.5, 0.5])
 
 s.run()
 s.plot_costs()
