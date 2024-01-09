@@ -2,6 +2,8 @@ import math
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import norm
+import scipy.special
 
 class SGD():
     
@@ -144,7 +146,6 @@ class SGD():
             
             f_x = 0
             for k in range(len(x[i])):
-                print(beta)
                 f_x = f_x + beta[k]*x[i][k]
             if y[i] == 1:
                 if f_x > 0:
@@ -262,8 +263,99 @@ class SGD():
         return self._norm(err)**2
 
 
-s = SGD(s=5, N=20000)
+
+
+
+    def plot_ROC(self, nMC=5, n=100, step=0.01):
+        alphas = np.arange(0, 1+step, step).tolist()
+        gammas = self._gamma_calculate(alphas)
+        one_minus_beta = self._one_minus_beta_calculate(alphas)
+        TP = [[0 for j in range(len(alphas))] for i in range(nMC)]
+        TN = [[0 for j in range(len(alphas))] for i in range(nMC)]
+        FP = [[0 for j in range(len(alphas))] for i in range(nMC)]
+        FN = [[0 for j in range(len(alphas))] for i in range(nMC)]
+
+        TPR_run = [[0 for j in range(len(alphas))] for i in range(nMC)]
+        FPR_run = [[0 for j in range(len(alphas))] for i in range(nMC)]
+
+        TPR = [0] * len(alphas)
+        FPR = [0] * len(alphas)
+        for run in range(nMC):
+            y, x = self._generate_data(n)
+            for k in range(n):
+                f = 0
+                for i in range(len(self._m)):
+                    f = f + self._beta[i+1]*x[k][i+1]
+                for i in range(len(alphas)):
+                    if y[k] == -1:
+                        if f < gammas[i]:
+                            TN[run][i] = TN[run][i] + 1
+                        else:
+                            FP[run][i] = FP[run][i] + 1
+                    else:
+                        if f > gammas[i]:
+                            TP[run][i] = TP[run][i] + 1
+                        else:
+                            FN[run][i] = FN[run][i] + 1
+            for i in range(len(alphas)):
+                if FP[run][i] + TN[run][i] != 0:
+                    FPR_run[run][i] =  FP[run][i] / (FP[run][i] + TN[run][i])
+                else:
+                    print("Divisione per zero nella FPR_run")
+                    FPR_run[run][i] = 0
+                
+                if TP[run][i] + FN[run][i] != 0:
+                    TPR_run[run][i] = TP[run][i] / (TP[run][i] + FN[run][i])
+                else:
+                    print("Divisione per zero nella TPR_run")
+                    TPR_run[run][i] = 0
+        
+        for i in range(len(alphas)):
+            fpr = 0
+            tpr = 0
+            for run in range(nMC):
+                fpr = fpr + FPR_run[run][i]
+                tpr = tpr + TPR_run[run][i]
+            TPR[i] = tpr/(run+1)
+            FPR[i] = fpr/(run+1)
+        plt.plot(FPR, TPR, label="estimated ROC")
+        plt.plot(alphas, one_minus_beta, label="best ROC")
+        plt.legend()
+        plt.show()
+
+    def _gamma_calculate(self, alphas):
+        gammas = [0] * len(alphas)
+        den = 0
+        for i in range(1, len(self._beta)):
+            den = den + (self._beta[i]**2)
+        den = math.sqrt(den)
+        const = math.log(self._prior[1]/self._prior[0]) - self._beta[0]
+        den_brah = self._norm(self._m)
+        for i in range(len(alphas)):
+            gammas[i] = self._inverse_Q_function(alphas[i])*den_brah
+        return gammas
+    
+    def _one_minus_beta_calculate(self, alphas):
+        betas = [0] * len(alphas)
+        num = 0
+        den = 0
+        for i in range(0, len(self._m)):
+            num = num + self._beta[i+1]*self._m[i] 
+            den = den + (self._beta[i+1]**2)
+        const = num/math.sqrt(den)
+        for i in range(len(alphas)):
+            betas[i] = self._Q_function((self._inverse_Q_function(alphas[i]) - const))
+        return betas
+
+    def _inverse_Q_function(self, probability):
+        return norm.ppf(1 - probability)
+    
+    def _Q_function(self, x):
+        return 0.5 * scipy.special.erfc(x / (2**0.5))
+
+s = SGD(s=1, N=5000)
 
 s.run()
 s.plot_costs()
 s.test_beta()
+s.plot_ROC(nMC=100, n=1000)

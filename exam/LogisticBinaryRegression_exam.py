@@ -8,7 +8,7 @@ import scipy.special
 
 class LogisticBinaryRegression():
 
-    def __init__(self, nMC=10, m=[1,1], step=0.001, N=100):
+    def __init__(self, nMC=10, m=[0.5, 0.5], step=0.001, N=100):
         self._nMC = nMC
         self._N = N
         self._m = m
@@ -137,9 +137,9 @@ class LogisticBinaryRegression():
     def _gamma_calculate(self, alphas):
         gammas = list(range(len(alphas)))
         norm_m = self._norm(self._m)
-        const = (norm_m**2)/2
+        #const = (norm_m**2)/2
         for i in range(len(alphas)):
-            gammas[i] = self._inverse_Q_function(alphas[i])*norm_m + const
+            gammas[i] = self._inverse_Q_function(alphas[i])*norm_m
         return gammas
     
     def _one_minus_beta_calculate(self):
