@@ -267,6 +267,12 @@ class SGD():
 
 
     def plot_ROC(self, nMC=5, n=100, step=0.01):
+        """
+        Input:
+        - nMC: run MonteCarlo
+        - n: number of sample
+        - step: step for generate alpha
+        """
         alphas = np.arange(0, 1+step, step).tolist()
         gammas = self._gamma_calculate(alphas)
         one_minus_beta = self._one_minus_beta_calculate(alphas)
@@ -324,18 +330,24 @@ class SGD():
         plt.show()
 
     def _gamma_calculate(self, alphas):
+        """
+        Calculate value of gamma for eache value of alpha.
+        """
         gammas = [0] * len(alphas)
         den = 0
         for i in range(1, len(self._beta)):
             den = den + (self._beta[i]**2)
         den = math.sqrt(den)
-        const = math.log(self._prior[1]/self._prior[0]) - self._beta[0]
+        #const = math.log(self._prior[1]/self._prior[0]) - self._beta[0]
         den_brah = self._norm(self._m)
         for i in range(len(alphas)):
             gammas[i] = self._inverse_Q_function(alphas[i])*den_brah
         return gammas
     
     def _one_minus_beta_calculate(self, alphas):
+        """
+        Calculate best value of beta for each value of alpha.
+        """
         betas = [0] * len(alphas)
         num = 0
         den = 0
@@ -347,10 +359,16 @@ class SGD():
             betas[i] = self._Q_function((self._inverse_Q_function(alphas[i]) - const))
         return betas
 
-    def _inverse_Q_function(self, probability):
-        return norm.ppf(1 - probability)
+    def _inverse_Q_function(self, x):
+        """
+        Calculate inverse of Q function.
+        """
+        return norm.ppf(1 - x)
     
     def _Q_function(self, x):
+        """
+        Calculate Q function.
+        """
         return 0.5 * scipy.special.erfc(x / (2**0.5))
 
 s = SGD(s=1, N=5000)
