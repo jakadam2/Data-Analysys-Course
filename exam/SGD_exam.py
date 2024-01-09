@@ -186,9 +186,10 @@ class SGD():
         If s, the batch size, is more than one -> will be performed the arithmetic mean
         """
         s = len(y)
+        grad = [0] * len(x[0])
         for k in range(s):
             const = 1/(1+math.exp(y[k]*self._dot_product(x[k], beta)))
-            grad = [0] * len(x[k])
+            
             for i in range(len(grad)):
                 grad[i] = grad[i] - (y[k]*x[k][i]*const)
         for i in range(len(grad)):
@@ -437,7 +438,7 @@ class SGD():
         self._beta = beta
 
 
-s = SGD(s=1, N=10, m=[0.5, 0.5])
+s = SGD(s=1, N=10000, m=[0.5, 0.5])
 
 s.run()
 s.plot_costs()
