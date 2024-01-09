@@ -96,6 +96,8 @@ class SGD():
             if self._decay:
                 learning_rate = self._learning_rate/(i+1)
         self._beta = beta
+
+
         
 
     def plot_costs(self):
@@ -399,6 +401,7 @@ class SGD():
 
         self._J = [None] * n_iterates
         # Because the loss function Q is defined on a sample of dataset
+        self._N = n_iterates*self._s
         self._Q = [None] * self._N
         self._MSE = [None] * n_iterates
         self._beta_values = [None] * n_iterates
@@ -418,7 +421,7 @@ class SGD():
             self._J[i] = self._calculate_J(y_J, x_J, beta)
             # Calculate Q
             for k in range(len(y)):
-                self._Q[i+k] = math.log(1 + math.exp(-y[k]*self._dot_product(x[k], beta)))
+                self._Q[i*self._s+k] = math.log(1 + math.exp(-y[k]*self._dot_product(x[k], beta)))
             # Calculate MSE
             self._beta_values[i] = beta
             self._MSE[i] = self._calculate_MSE(beta)
@@ -438,7 +441,7 @@ class SGD():
         self._beta = beta
 
 
-s = SGD(s=1, N=100, m=[0.5, 0.5])
+s = SGD(s=1, m=[0.5, 0.5], n_iterates=100)
 
 s.run()
 s.plot_costs()
