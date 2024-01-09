@@ -85,7 +85,7 @@ class SGD():
 
             # If early stopping must be performed
             if self._early_stopping != False:
-                if i!=0 and (abs(self._J[i]-self._J[i-1])<=0.0000001):
+                if i!=0 and (abs(self._J[i]-self._J[i-1])<=0.00001):
                     stop = stop+1
                     if stop >= self._early_stopping:
                         print("Stop at iteretion number", i)
@@ -428,7 +428,7 @@ class SGD():
 
             # If early stopping must be performed
             if self._early_stopping != False:
-                if i!=0 and (abs(self._J[i]-self._J[i-1])<=0.0000001):
+                if i!=0 and (abs(self._J[i]-self._J[i-1])<=0.00001):
                     stop = stop+1
                     if stop >= self._early_stopping:
                         print("Stop at iteretion number", i)
@@ -441,9 +441,9 @@ class SGD():
         self._beta = beta
 
 
-s = SGD(s=9, m=[0.5, 0.5], n_iterates=10000, early_stopping=5)
+s = SGD(s=9, m=[0.5, 0.5], N=10000, n_iterates=10000, early_stopping=2)
 
-s.run_online()
+s.run()
 s.plot_costs()
 s.test_beta() # You can launch it only if you have len(m)==2
 s.plot_ROC(nMC=10, n=1000)
