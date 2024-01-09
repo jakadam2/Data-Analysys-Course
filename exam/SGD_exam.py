@@ -27,7 +27,7 @@ class SGD():
         self._best_beta = [(-self._norm(m)**2)/2 + math.log(prior[1]/prior[0])] + m
         self._learning_rate = learning_rate
         self._decay = decay
-        self.__early_stopping = _early_stopping
+        self._early_stopping = _early_stopping
         self._s = s
         self._N = N
         self._n_iterates = n_iterates
@@ -84,10 +84,10 @@ class SGD():
             self._MSE[i] = self._calculate_MSE(beta)
 
             # If early stopping must be performed
-            if self.__early_stopping != False:
+            if self._early_stopping != False:
                 if i!=0 and (abs(self._J[i]-self._J[i-1])<=0.0000001):
                     stop = stop+1
-                    if stop >= self.__early_stopping:
+                    if stop >= self._early_stopping:
                         print("Stop at iteretion number", i)
                         break
                 else:
@@ -427,10 +427,10 @@ class SGD():
             self._MSE[i] = self._calculate_MSE(beta)
 
             # If early stopping must be performed
-            if self.__early_stopping != False:
+            if self._early_stopping != False:
                 if i!=0 and (abs(self._J[i]-self._J[i-1])<=0.0000001):
                     stop = stop+1
-                    if stop >= self.__early_stopping:
+                    if stop >= self._early_stopping:
                         print("Stop at iteretion number", i)
                         break
                 else:
@@ -441,7 +441,7 @@ class SGD():
         self._beta = beta
 
 
-s = SGD(s=1, m=[0.5, 0.5], n_iterates=100)
+s = SGD(s=9, m=[0.5, 0.5], n_iterates=1000)
 
 s.run()
 s.plot_costs()
