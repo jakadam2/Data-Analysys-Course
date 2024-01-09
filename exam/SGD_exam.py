@@ -342,9 +342,8 @@ class SGD():
             den = den + (self._beta[i]**2)
         den = math.sqrt(den)
         #const = math.log(self._prior[1]/self._prior[0]) - self._beta[0]
-        den_brah = self._norm(self._m)
         for i in range(len(alphas)):
-            gammas[i] = self._inverse_Q_function(alphas[i])*den_brah
+            gammas[i] = self._inverse_Q_function(alphas[i])*den
         return gammas
     
     def _one_minus_beta_calculate(self, alphas):
