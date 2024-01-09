@@ -54,7 +54,7 @@ class SGD():
         learning_rate = self._learning_rate
         # Generate data
         labels, data = self._generate_data(self._N)
-        n_iterates = math.floor(len(labels)/self._s)
+        n_iterates = math.ceil(len(labels)/self._s)
         self._n_iterates = n_iterates
 
         self._J = [None] * n_iterates
@@ -66,7 +66,7 @@ class SGD():
         y_J = []
 
         for i in range(n_iterates):
-            y, x = labels[i:i+self._s], data[i:i+self._s]
+            y, x = labels[i*self._s:(i+1)*self._s], data[i*self._s:(i+1)*self._s]
             x_J = x_J + x
             y_J = y_J + y
 
@@ -78,7 +78,7 @@ class SGD():
             self._J[i] = self._calculate_J(y_J, x_J, beta)
             # Calculate Q
             for k in range(len(y)):
-                self._Q[i+k] = math.log(1 + math.exp(-y[k]*self._dot_product(x[k], beta)))
+                self._Q[i*self._s+k] = math.log(1 + math.exp(-y[k]*self._dot_product(x[k], beta)))
             # Calculate MSE
             self._beta_values[i] = beta
             self._MSE[i] = self._calculate_MSE(beta)
@@ -394,7 +394,7 @@ class SGD():
             
         learning_rate = self._learning_rate
 
-        n_iterates = math.floor(self._n_iterates/self._s)
+        n_iterates = math.ceil(self._n_iterates/self._s)
         self._n_iterates = n_iterates
 
         self._J = [None] * n_iterates
@@ -438,7 +438,7 @@ class SGD():
         self._beta = beta
 
 
-s = SGD(s=1, N=10000, m=[0.5, 0.5])
+s = SGD(s=1, N=100, m=[0.5, 0.5])
 
 s.run()
 s.plot_costs()
