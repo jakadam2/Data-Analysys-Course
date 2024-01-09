@@ -7,13 +7,13 @@ import scipy.special
 
 class SGD():
     
-    def __init__(self, m=[1,1], labels=[-1, 1], prior=[1/2, 1/2], iterates=None, learning_rate = 0.01, decay=False, _early_stopping=False, s=1, N=100):
+    def __init__(self, m=[1,1], labels=[-1, 1], prior=[1/2, 1/2], n_iterates=None, learning_rate = 0.01, decay=False, _early_stopping=False, s=1, N=100):
         """
         Input:
         - m: mean of the x that will generates when label is +1
         - labels: the two label
         - prior: list that contains prior of -1 and +1
-        - iterates: is used only in online application. Represent the max number of iterations that will be performed
+        - n_iterates: is used only in online application. Represent the max number of iterations that will be performed
         - learning rate
         - decay: if decay is false the learning rate remains constant. In contrast, if is true th learning rate will be (learning rate)/(i+1)
         - early_stopping: if is a number -> if J don't change more than a constant between two iterations, the for-each will stop
@@ -22,7 +22,6 @@ class SGD():
         """
         self._m = m
         self._labels = labels
-        self._iterates = iterates
         self._prior = prior
         # value of the optimal parameters of beta
         self._best_beta = [(-self._norm(m)**2)/2 + math.log(prior[1]/prior[0])] + m
@@ -31,7 +30,7 @@ class SGD():
         self.__early_stopping = _early_stopping
         self._s = s
         self._N = N
-        self._n_iterates = None
+        self._n_iterates = n_iterates
         self._beta = None
         self._J = None
         self._Q = None
@@ -275,7 +274,7 @@ class SGD():
         """
         alphas = np.arange(0, 1+step, step).tolist()
         gammas = self._gamma_calculate(alphas)
-        one_minus_beta = self._one_minus_beta_calculate(alphas)
+        one_minus_beta, one_minus_best_beta = self._one_minus_beta_calculate(alphas)
         TP = [[0 for j in range(len(alphas))] for i in range(nMC)]
         TN = [[0 for j in range(len(alphas))] for i in range(nMC)]
         FP = [[0 for j in range(len(alphas))] for i in range(nMC)]
@@ -324,8 +323,9 @@ class SGD():
                 tpr = tpr + TPR_run[run][i]
             TPR[i] = tpr/(run+1)
             FPR[i] = fpr/(run+1)
-        plt.plot(FPR, TPR, label="estimated ROC")
-        plt.plot(alphas, one_minus_beta, label="best ROC")
+        plt.plot(FPR, TPR, label="estimated ROC with estimated beta")
+        plt.plot(alphas, one_minus_beta, label="best ROC with estimated beta")
+        plt.plot(alphas, one_minus_best_beta, label="best ROC with best beta")
         plt.legend()
         plt.show()
 
@@ -349,15 +349,22 @@ class SGD():
         Calculate best value of beta for each value of alpha.
         """
         betas = [0] * len(alphas)
+        best_betas = [0] * len(alphas)
         num = 0
         den = 0
+        best_num = 0
+        best_den = 0
         for i in range(0, len(self._m)):
             num = num + self._beta[i+1]*self._m[i] 
             den = den + (self._beta[i+1]**2)
+            best_num = best_num + self._best_beta[i+1]*self._m[i] 
+            best_den = best_den + (self._best_beta[i+1]**2)
         const = num/math.sqrt(den)
+        best_const = num/math.sqrt(den)
         for i in range(len(alphas)):
             betas[i] = self._Q_function((self._inverse_Q_function(alphas[i]) - const))
-        return betas
+            best_betas[i] = self._Q_function((self._inverse_Q_function(alphas[i]) - best_const))
+        return betas, best_betas
 
     def _inverse_Q_function(self, x):
         """
@@ -371,9 +378,68 @@ class SGD():
         """
         return 0.5 * scipy.special.erfc(x / (2**0.5))
 
-s = SGD(s=1, N=5000)
+
+
+    def run_online(self):
+        """
+        If you have an algorithm online, run this.
+        """
+        stop = 0
+
+        # Inizializate beta
+        beta = list(range(len(self._m) + 1))
+        for i in range(len(beta)):
+            beta[i] = random.random()
+            
+        learning_rate = self._learning_rate
+
+        n_iterates = math.floor(self._n_iterates/self._s)
+        self._n_iterates = n_iterates
+
+        self._J = [None] * n_iterates
+        # Because the loss function Q is defined on a sample of dataset
+        self._Q = [None] * self._N
+        self._MSE = [None] * n_iterates
+        self._beta_values = [None] * n_iterates
+        x_J = []
+        y_J = []
+
+        for i in range(n_iterates):
+            y, x = self._generate_data(self._s)
+            x_J = x_J + x
+            y_J = y_J + y
+
+            # Calculate the gradient
+            grad = self._calculate_gradient(y, x, beta)
+            # Update beta
+            beta = self._update_beta(beta, grad, learning_rate)
+            # Calculate actual J
+            self._J[i] = self._calculate_J(y_J, x_J, beta)
+            # Calculate Q
+            for k in range(len(y)):
+                self._Q[i+k] = math.log(1 + math.exp(-y[k]*self._dot_product(x[k], beta)))
+            # Calculate MSE
+            self._beta_values[i] = beta
+            self._MSE[i] = self._calculate_MSE(beta)
+
+            # If early stopping must be performed
+            if self.__early_stopping != False:
+                if i!=0 and (abs(self._J[i]-self._J[i-1])<=0.0000001):
+                    stop = stop+1
+                    if stop >= self.__early_stopping:
+                        print("Stop at iteretion number", i)
+                        break
+                else:
+                    stop = 0
+            # If decay must be performed
+            if self._decay:
+                learning_rate = self._learning_rate/(i+1)
+        self._beta = beta
+
+
+s = SGD(s=1, N=5000, m=[0.5, 0.5])
 
 s.run()
 s.plot_costs()
-s.test_beta()
-s.plot_ROC(nMC=100, n=1000)
+s.test_beta() # You can launch it only if you have len(m)==2
+s.plot_ROC(nMC=10, n=1000)
