@@ -441,9 +441,9 @@ class SGD():
         self._beta = beta
 
 
-s = SGD(s=9, m=[0.5, 0.5], N=10000, n_iterates=10000, early_stopping=2)
+s = SGD(s=9, m=[0.5, 0.5], N=10000, n_iterates=10000)
 
-s.run()
+s.run_online()
 s.plot_costs()
 s.test_beta() # You can launch it only if you have len(m)==2
 s.plot_ROC(nMC=10, n=1000)
