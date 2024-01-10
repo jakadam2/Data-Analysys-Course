@@ -127,14 +127,19 @@ dim(matrixTrainX)
 matrixTestX =model.matrix(Y~.,test_data)[,2:31]
 cv.out=cv.glmnet(matrixTrainX, Y_train, alpha=0)
 bestlambdaridge = cv.out$lambda.min
-
+ridgebic =(cv.out$cvsd) ^2 + log(30)*30
 # 3) LASSO REGRESSION
 # we do exaclty the same thing like in Ridge
 cv.out=cv.glmnet(matrixTrainX, Y_train, alpha=1)
 bestlambdalasso = cv.out$lambda.min
 
-# 3) EVALUATE ON TEST SET
+lassobic = (cv.out$cvsd) ^2 + log(30)*30
+ 
+#Hipothesys: comparing BIC's of the models we can think that the best will be forward selection
+
+# 5) EVALUATE ON TEST SET
 # here we make a predictions on the test set and calculate test set error
+
 
 matrixTest = model.matrix(Y~.,test_data)
 ridge.mod = glmnet(matrixTrainX,Y_train,alpha = 0)
@@ -156,6 +161,7 @@ fwd.error
 bwd.error
 hib.error
 # the forward subset selection test error was the smallest so we choose it
+# and the #Hipothesys was true
 names(coef(regfit.fwd,13))[2:13]
 model = lm(Y~X1+X2+X3+X5+X11+X14+X17+X19+X21+X22+X23+X24,data = train_data)
 summary(model)
