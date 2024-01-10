@@ -439,70 +439,10 @@ class SGD():
                 learning_rate = self._learning_rate/(i+1)
         self._beta = beta
 
-    def plot_posterior(self, theta, m=[1]):
-        self._m = m
-        m = self._m[0]
-        x = np.arange(-3, 6+0.01, 0.01).tolist()
-        print(m)
-        p = [0]*len(x)
-        for i in range(len(x)):
-            p[i] = 1/(1+math.exp(-theta*(x[i]*m-(m**2)/2)))
 
-        plt.plot(x, p)
-        plt.show()
+s = SGD(s=9, m=[0.5, 0.5], N=10000, n_iterates=10000)
 
-    def return_posterior(self, theta, x, m=1):
-
-        p = 1/(1+math.exp(-theta*(x*m-(m**2)/2)))
-        return p
-
-
-    def scatter_data(self, m, n=20):
-        self._m = m
-        y, x = self._generate_data(n)
-        for i in range(len(y)):
-            if y[i] == -1:
-                color = "black"
-            else:
-                color = "red"
-            plt.scatter(x[i][1], 0, color=color)
-        plt.show()
-
-
-    def MAP_rule(self, m, nMC=100, n=100):
-        pr_err = [0] * nMC
-
-        for run in range(nMC):
-            y, x = self._generate_data(n)
-            pr_neg = 0
-            pr_pos = 0
-            for i in range(len(y)):
-                p = self.return_posterior(1, x[i][1], m) # p(theta|x)
-
-                f_x = math.log(p/(1-p))
-                if f_x > 0:
-                    if y[i] == -1:
-                        pr_neg = pr_neg + 1
-                else:
-                    if y[i] == 1:
-                        pr_pos = pr_pos + 1
-            pr_neg = pr_neg/len(y)
-            pr_pos = pr_pos/len(y)
-            pr_err[run] = 1/2*(pr_neg + pr_pos)
-        return sum(pr_err)/nMC
-
-s = SGD(s=9, m=[5], N=10000, n_iterates=10000)
-#s.plot_posterior(1, m=[3])
-m_good = 5
-# s.scatter_data([m_good])
-m_bad = 0.5
-# s.scatter_data([m_bad])
-
-print(s.MAP_rule(m_bad))
-print(s.MAP_rule(m_good))
-
-
-# s.run_online()
-# s.plot_costs()
-# s.test_beta() # You can launch it only if you have len(m)==2
-# s.plot_ROC(nMC=10, n=1000)
+s.run_online()
+s.plot_costs()
+s.test_beta() # You can launch it only if you have len(m)==2
+s.plot_ROC(nMC=10, n=1000)
