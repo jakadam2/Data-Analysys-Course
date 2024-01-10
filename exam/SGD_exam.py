@@ -7,7 +7,7 @@ import scipy.special
 
 class SGD():
     
-    def __init__(self, m=[1,1], labels=[-1, 1], prior=[1/2, 1/2], n_iterates=None, learning_rate = 0.01, decay=False, early_stopping=False, s=1, N=100):
+    def __init__(self, m_good, m_bad, m=[1,1], labels=[-1, 1], prior=[1/2, 1/2], n_iterates=None, learning_rate = 0.01, decay=False, early_stopping=False, s=1, N=100):
         """
         Input:
         - m: mean of the x that will generates when label is +1
@@ -20,6 +20,8 @@ class SGD():
         - s: mini-batch size. If s=1, will be performed SGD with 
         - N: size of dataset
         """
+        self._m_bad = m_bad
+        self._m_good = m_good
         self._m = m
         self._labels = labels
         self._prior = prior
@@ -53,7 +55,7 @@ class SGD():
             
         learning_rate = self._learning_rate
         # Generate data
-        labels, data = self._generate_data(self._N)
+        labels, data = self.twotranches(self._N, self._m_bad, self._m_good)
         n_iterates = math.ceil(len(labels)/self._s)
         self._n_iterates = n_iterates
 
@@ -77,11 +79,12 @@ class SGD():
             # Calculate actual J
             self._J[i] = self._calculate_J(y_J, x_J, beta)
             # Calculate Q
-            for k in range(len(y)):
-                self._Q[i*self._s+k] = math.log(1 + math.exp(-y[k]*self._dot_product(x[k], beta)))
+            # for k in range(len(y)):
+            #     self._Q[i*self._s+k] = math.log(1 + math.exp(-y[k]*self._dot_product(x[k], beta)))
             # Calculate MSE
-            self._beta_values[i] = beta
-            self._MSE[i] = self._calculate_MSE(beta)
+            
+            self._beta_values[i] = beta.copy()
+            #self._MSE[i] = self._calculate_MSE(beta)
 
             # If early stopping must be performed
             if self._early_stopping != False:
@@ -382,62 +385,62 @@ class SGD():
 
 
 
-    def run_online(self):
-        """
-        If you have an algorithm online, run this.
-        """
-        stop = 0
+    # def run_online(self):
+    #     """
+    #     If you have an algorithm online, run this.
+    #     """
+    #     stop = 0
 
-        # Inizializate beta
-        beta = list(range(len(self._m) + 1))
-        for i in range(len(beta)):
-            beta[i] = random.random()
+    #     # Inizializate beta
+    #     beta = list(range(len(self._m) + 1))
+    #     for i in range(len(beta)):
+    #         beta[i] = random.random()
             
-        learning_rate = self._learning_rate
+    #     learning_rate = self._learning_rate
 
-        n_iterates = math.ceil(self._n_iterates/self._s)
-        self._n_iterates = n_iterates
+    #     n_iterates = math.ceil(self._n_iterates/self._s)
+    #     self._n_iterates = n_iterates
 
-        self._J = [None] * n_iterates
-        # Because the loss function Q is defined on a sample of dataset
-        self._N = n_iterates*self._s
-        self._Q = [None] * self._N
-        self._MSE = [None] * n_iterates
-        self._beta_values = [None] * n_iterates
-        x_J = []
-        y_J = []
+    #     self._J = [None] * n_iterates
+    #     # Because the loss function Q is defined on a sample of dataset
+    #     self._N = n_iterates*self._s
+    #     self._Q = [None] * self._N
+    #     self._MSE = [None] * n_iterates
+    #     self._beta_values = [None] * n_iterates
+    #     x_J = []
+    #     y_J = []
 
-        for i in range(n_iterates):
-            y, x = self._generate_data(self._s)
-            x_J = x_J + x
-            y_J = y_J + y
+    #     for i in range(n_iterates):
+    #         y, x = self._generate_data(self._s)
+    #         x_J = x_J + x
+    #         y_J = y_J + y
 
-            # Calculate the gradient
-            grad = self._calculate_gradient(y, x, beta)
-            # Update beta
-            beta = self._update_beta(beta, grad, learning_rate)
-            # Calculate actual J
-            self._J[i] = self._calculate_J(y_J, x_J, beta)
-            # Calculate Q
-            for k in range(len(y)):
-                self._Q[i*self._s+k] = math.log(1 + math.exp(-y[k]*self._dot_product(x[k], beta)))
-            # Calculate MSE
-            self._beta_values[i] = beta
-            self._MSE[i] = self._calculate_MSE(beta)
+    #         # Calculate the gradient
+    #         grad = self._calculate_gradient(y, x, beta)
+    #         # Update beta
+    #         beta = self._update_beta(beta, grad, learning_rate)
+    #         # Calculate actual J
+    #         self._J[i] = self._calculate_J(y_J, x_J, beta)
+    #         # Calculate Q
+    #         for k in range(len(y)):
+    #             self._Q[i*self._s+k] = math.log(1 + math.exp(-y[k]*self._dot_product(x[k], beta)))
+    #         # Calculate MSE
+    #         self._beta_values[i] = beta
+    #         self._MSE[i] = self._calculate_MSE(beta)
 
-            # If early stopping must be performed
-            if self._early_stopping != False:
-                if i!=0 and (abs(self._J[i]-self._J[i-1])<=0.00001):
-                    stop = stop+1
-                    if stop >= self._early_stopping:
-                        print("Stop at iteretion number", i)
-                        break
-                else:
-                    stop = 0
-            # If decay must be performed
-            if self._decay:
-                learning_rate = self._learning_rate/(i+1)
-        self._beta = beta
+    #         # If early stopping must be performed
+    #         if self._early_stopping != False:
+    #             if i!=0 and (abs(self._J[i]-self._J[i-1])<=0.00001):
+    #                 stop = stop+1
+    #                 if stop >= self._early_stopping:
+    #                     print("Stop at iteretion number", i)
+    #                     break
+    #             else:
+    #                 stop = 0
+    #         # If decay must be performed
+    #         if self._decay:
+    #             learning_rate = self._learning_rate/(i+1)
+    #     self._beta = beta
 
     def plot_posterior(self, theta, m=[1]):
         self._m = m
@@ -490,19 +493,59 @@ class SGD():
             pr_pos = pr_pos/len(y)
             pr_err[run] = 1/2*(pr_neg + pr_pos)
         return sum(pr_err)/nMC
+    
+    def twotranches(self, n, m_bad, m_good):
+        self._m = [m_good]
+        y_good, x_good = self._generate_data(int(n/2))
+        self._m = [m_bad]
+        y_bad, x_bad= self._generate_data(int(n/2))
+        return y_good+y_bad, x_good+x_bad
 
-s = SGD(s=9, m=[5], N=10000, n_iterates=10000)
+    def plot_beta(self):
+        plt.figure()
+        beta0 = [0]*len(self._beta_values)
+        for i in range(len(self._beta_values)):
+            beta0[i] = self._beta_values[i][0]
+        plt.plot(range(len(self._beta_values)), beta0)
+        plt.show()
+        beta1 = [0]*len(self._beta_values)
+        for i in range(len(self._beta_values)):
+            beta1[i] = self._beta_values[i][1]
+        plt.plot(range(len(self._beta_values)), beta1)
+        plt.show()
+
+    def find_betas(self):
+        m = 30
+        mean_prev = 0
+        for k in range(m):
+            mean_prev = mean_prev + self._beta_values[k][0]
+        mean_prev = mean_prev/m
+        for i in range(1, math.ceil(len(self._beta_values)/m)):
+            if i*m+k<len(self._beta_values):
+                mean_next = 0
+                for k in range(m):
+                    mean_next = mean_next + self._beta_values[i*m+k][0]
+                mean_next = mean_next/m
+                if mean_prev-mean_next > 2:
+                    print(i*m)
+                    
+                mean_prev = mean_next
+
 #s.plot_posterior(1, m=[3])
 m_good = 5
 # s.scatter_data([m_good])
 m_bad = 0.5
 # s.scatter_data([m_bad])
+s = SGD(m_good, m_bad,  N=10000, m=[1], learning_rate=1)
+# print(s.MAP_rule(m_bad))
+# print(s.MAP_rule(m_good))
 
-print(s.MAP_rule(m_bad))
-print(s.MAP_rule(m_good))
 
 
-# s.run_online()
+s.run()
+
+s.find_betas()
+s.plot_beta()
 # s.plot_costs()
 # s.test_beta() # You can launch it only if you have len(m)==2
 # s.plot_ROC(nMC=10, n=1000)
