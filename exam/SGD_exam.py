@@ -77,7 +77,7 @@ class SGD():
             # Update beta
             beta = self._update_beta(beta, grad, learning_rate)
             # Calculate actual J
-            self._J[i] = self._calculate_J(y_J, x_J, beta)
+            #self._J[i] = self._calculate_J(y_J, x_J, beta)
             # Calculate Q
             # for k in range(len(y)):
             #     self._Q[i*self._s+k] = math.log(1 + math.exp(-y[k]*self._dot_product(x[k], beta)))
@@ -536,7 +536,7 @@ m_good = 5
 # s.scatter_data([m_good])
 m_bad = 0.5
 # s.scatter_data([m_bad])
-s = SGD(m_good, m_bad,  N=10000, m=[1], learning_rate=1)
+s = SGD(m_good, m_bad,  N=100000, m=[1], learning_rate=1)
 # print(s.MAP_rule(m_bad))
 # print(s.MAP_rule(m_good))
 
