@@ -74,7 +74,7 @@ class sgd():
         plot.plot(range(len(b0s)), np.ones((len(b0s)))*(-self._mp_bad**2/2), color='red')
         plot.xlabel('steps')
         plot.ylabel('beta_0')
-        plot.legend(['beta_1', 'mp_good', 'mp_bad'])
+        plot.legend(['beta_0', '-mp_good^2/2', '-mp_bad^2/2'])
         plot.savefig('b0.png')
 
         plot.figure()
