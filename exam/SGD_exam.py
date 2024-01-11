@@ -446,12 +446,19 @@ class SGD():
         self._m = m
         m = self._m[0]
         x = np.arange(-3, 6+0.01, 0.01).tolist()
-        print(m)
         p = [0]*len(x)
         for i in range(len(x)):
             p[i] = 1/(1+math.exp(-theta*(x[i]*m-(m**2)/2)))
 
         plt.plot(x, p)
+        plt.xlabel("x")
+        plt.ylabel("p("+str(theta)+"|x)")
+        plt.title("m = "+str(m))
+
+        plt.axvline(x=0, color='black')
+        plt.axvline(x=m, color='red')
+
+
         plt.show()
 
     def return_posterior(self, theta, x, m=1):
@@ -474,14 +481,15 @@ class SGD():
 
     def MAP_rule(self, m, nMC=100, n=100):
         pr_err = [0] * nMC
-
+        self._m = [m]
         for run in range(nMC):
             y, x = self._generate_data(n)
             pr_neg = 0
             pr_pos = 0
             for i in range(len(y)):
                 p = self.return_posterior(1, x[i][1], m) # p(theta|x)
-
+                if p == 0:
+                    print("a")
                 f_x = math.log(p/(1-p))
                 if f_x > 0:
                     if y[i] == -1:
@@ -531,20 +539,25 @@ class SGD():
                     
                 mean_prev = mean_next
 
-#s.plot_posterior(1, m=[3])
-m_good = 5
-# s.scatter_data([m_good])
 m_bad = 0.5
-# s.scatter_data([m_bad])
-s = SGD(m_good, m_bad,  N=100000, m=[1], learning_rate=1)
-# print(s.MAP_rule(m_bad))
-# print(s.MAP_rule(m_good))
+m_good = 5
+s = SGD(m_good, m_bad,  N=5000, m=[1], learning_rate=0.9)
 
+# s.plot_posterior(1, m=[m_bad])
+# s.plot_posterior(1, m=[m_good])
+
+# s.scatter_data([m_good])
+
+# s.scatter_data([m_bad])
+# print()
+# print("The error probability with mgood is",s.MAP_rule(5, n=100))
+# print("The error probability with mbad is",s.MAP_rule(-5, n=100))
+# print()
 
 
 s.run()
 
-s.find_betas()
+# s.find_betas()
 s.plot_beta()
 # s.plot_costs()
 # s.test_beta() # You can launch it only if you have len(m)==2
