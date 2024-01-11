@@ -9,7 +9,7 @@ class sgd():
     def __init__(self):
         self._mn = [0, 0]
         self._mp = [5, 5]
-        self._N = 2000  # numero di campioni 
+        self._N = 200  # numero di campioni 
         self._sigma = 0.5  # varianza
         self._u = 0.2   # step size
         # inizializzazione di beta 

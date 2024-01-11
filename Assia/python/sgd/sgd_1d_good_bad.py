@@ -7,12 +7,13 @@ import matplotlib.pyplot as plot
 class sgd(): 
 
     def __init__(self):
-        self._mp = 5
+        self._mp_good = 5
+        self._mp_bad = 0.5
         self._mn = 0
         self._labels = [-1, 1]
-        self._N = 200000  # numero di campioni 
+        self._N = 160000  # numero di campioni 
         self._sigma = 1  # varianza
-        self._u = 0.1 # step size
+        self._u = 0.09 # step size
         # inizializzazione di beta 
         self._b0 = random.uniform(-3, 3)
         self._b1 = random.uniform(-3, 3)
@@ -22,8 +23,9 @@ class sgd():
         # self._dataset = np.concatenate((data_positive, data_negative), axis=0) # tutti i dati in una sola matrice
         # indices = np.arange(self._dataset.shape[0])  # shuffle del dataset 
         # np.random.shuffle(indices)
-        self._dataset = self._data_generation(0.5, self._mp, self._mn, self._sigma, self._N, self._labels)
-
+        self._dataset_good = self._data_generation(0.5, self._mp_good, self._mn, self._sigma, self._N, self._labels)
+        self._dataset_bad = self._data_generation(0.5, self._mp_bad, self._mn, self._sigma, self._N, self._labels)
+        self._dataset = np.concatenate((self._dataset_good, self._dataset_bad), axis=0)
 
     
 
@@ -68,10 +70,20 @@ class sgd():
 
         plot.figure()
         plot.plot(range(len(b0s)), b0s)
+        plot.plot(range(len(b0s)), np.ones((len(b0s)))*(-self._mp_good**2/2), color='green')
+        plot.plot(range(len(b0s)), np.ones((len(b0s)))*(-self._mp_bad**2/2), color='red')
+        plot.xlabel('steps')
+        plot.ylabel('beta_0')
+        plot.legend(['beta_1', 'mp_good', 'mp_bad'])
         plot.savefig('b0.png')
 
         plot.figure()
         plot.plot(range(len(b1s)), b1s)
+        plot.plot(range(len(b1s)), np.ones((len(b1s)))*(self._mp_good), color='green')
+        plot.plot(range(len(b1s)), np.ones((len(b1s)))*(self._mp_bad), color='red')
+        plot.xlabel('steps')
+        plot.ylabel('beta_1')
+        plot.legend(['beta_1', 'mp_good', 'mp_bad'])
         plot.savefig('b1.png')
 
         print('b0 = '+str(self._b0))
